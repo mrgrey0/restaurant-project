@@ -1,4 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .firebase import signup_user, login_user
 
 def category(request, category):
     # Fetch food items for the given category from the database or any data source
@@ -89,3 +91,44 @@ def food_detail_view(request, food_name):
 
 def menu(request):
     return render(request, 'menucard.html')
+
+
+def signup_view(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        mobile = request.POST.get('mobile')
+        email = request.POST.get('email')
+        address = request.POST.get('address')
+        password = request.POST.get('password')
+
+        user_id = signup_user(email, password, mobile, address)
+        if user_id:
+            messages.success(request, 'Signup successful! You can now login.')
+            return redirect('login')  # Redirect to login URL
+        else:
+            messages.error(request, 'Signup failed. Please try again.')
+            return render(request, 'signup.html')  # Retake the form
+
+    return render(request, 'signup.html')  # Render the signup form if GET request
+
+
+def login_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        # Call the login_user function to verify the credentials
+        user_info = login_user(email, password)
+
+        if user_info:
+            # Store user information in session
+            request.session['user_uid'] = user_info['uid']
+            request.session['user_data'] = user_info['data']  # Firestore user data
+
+            messages.success(request, 'Login successful!')
+            return redirect('menu')  # Redirect to menu if successfull login
+        else:
+            messages.error(request, 'Invalid email or password. Please try again.')
+            return render(request, 'login.html')  # Show the login form again if login fails
+
+    return render(request, 'login.html')  # Render the login form for GET requests
