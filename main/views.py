@@ -1,10 +1,22 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .firebase import signup_user, login_user
+from .firebase import get_pending_orders, mark_order_comp, signup_user, login_user, store_order
+
+def hotel_dashboard(request):
+    orders = get_pending_orders()  # Fetch all orders from Firestore
+
+    return render(request, 'hotel_dash.html', {'orders': orders})
+
+def mark_order_complete(request, order_id):
+
+    res = mark_order_comp(order_id)
+
+    # Redirect the user back to the orders page
+    return redirect('hotel_dashboard')
+
 
 def category(request, category):
-    # Fetch food items for the given category from the database or any data source
-    # For simplicity, let's use a sample dictionary for now
+    # dummy data for food categories
     food_categories = {
     'breakfast': [
         {'name': 'Pancakes', 'image': 'https://images.unsplash.com/photo-1563805042-7684e1a34574?fit=crop&w=500&q=80'},
@@ -101,7 +113,14 @@ def signup_view(request):
         address = request.POST.get('address')
         password = request.POST.get('password')
 
-        user_id = signup_user(email, password, mobile, address)
+        check = request.POST.get('hotel_login')
+        if(check == 'on'):
+            hotel_login = True
+        else:
+            hotel_login = False
+
+
+        user_id = signup_user(name, email, password, mobile, address, hotel_login)
         if user_id:
             messages.success(request, 'Signup successful! You can now login.')
             return redirect('login')  # Redirect to login URL
@@ -121,14 +140,59 @@ def login_view(request):
         user_info = login_user(email, password)
 
         if user_info:
-            # Store user information in session
+            print('User logged in:', user_info)
+
+            print('user logged in')
             request.session['user_uid'] = user_info['uid']
             request.session['user_data'] = user_info['data']  # Firestore user data
+            #if (user_info['data'].get('hotel_login').isNotNull()):
+            #    is_hotel_user = True
 
-            messages.success(request, 'Login successful!')
-            return redirect('menu')  # Redirect to menu if successfull login
+            is_hotel_user = user_info['data'].get('hotel_login', False)
+            print('Is hotel user checked:', is_hotel_user)
+
+            if is_hotel_user:
+                messages.success(request, 'Login successful! Redirecting to hotel dashboard.')
+                return redirect('hotel_dashboard')  # Redirect hotel users to a different page
+            else:
+                messages.success(request, 'Login successful! Redirecting to the main menu.')
+                return redirect('menu')
         else:
             messages.error(request, 'Invalid email or password. Please try again.')
             return render(request, 'login.html')  # Show the login form again if login fails
 
     return render(request, 'login.html')  # Render the login form for GET requests
+
+
+def buy_func(request):
+    if 'user_uid' not in request.session:
+        # Redirect to login if the user is not logged in
+        messages.error(request, 'Please log in to proceed with the purchase.')
+        return redirect('login')
+
+    # Get the logged-in user's details
+    user_uid = request.session['user_uid']
+    user_data = request.session['user_data']  # Assuming the user data was stored in session during login
+
+    if request.method == 'POST':
+        # Extract the order details from the form or the page context
+        food_name = request.POST.get('food_name')
+        food_price = request.POST.get('food_price')
+        food_description = request.POST.get('food_description')
+        delivery_address = user_data.get('address')  # Using the user's stored address
+
+        user_name = user_data.get('name')
+        user_num = user_data.get('mobile')
+
+        # Call the function to store the order in Firestore
+        order_success = store_order(user_uid, food_name, food_price, food_description, delivery_address, user_name, user_num)
+
+        if order_success:
+            messages.success(request, 'Purchase successful! Your order will be delivered soon.')
+            return redirect('menu')  # Redirect to the menu or another page after success
+        else:
+            messages.error(request, 'There was an issue processing your order. Please try again.')
+            return redirect('buy')
+
+    # Render the buy page if it's a GET request
+    return render(request, 'buy.html')

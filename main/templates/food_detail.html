@@ -75,7 +75,16 @@
         <h1>{{ food_name }}</h1>
         <p>{{ food_description }}</p>
         <div class="price">Price: ₹{{ food_price }}</div>
-        <button class="buy-button">Buy Now with Cash on Delivery</button>
+        <form action="{% url 'buy' %}" method="POST">
+            {% csrf_token %}
+            <!-- Hidden fields to send data with the request -->
+            <input type="hidden" name="food_name" value="{{ food_name }}">
+            <input type="hidden" name="food_price" value="{{ food_price }}">
+            <input type="hidden" name="food_description" value="{{ food_description }}">
+
+            <!-- Buy button that submits the form -->
+            <button type="submit" class="buy-button">Buy Now with Cash on Delivery</button>
+        </form>
     </div>
 
 </body>

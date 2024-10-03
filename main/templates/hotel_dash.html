@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Hotel Login - Orders List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .order-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .order-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .order-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-item h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.25rem;
+        }
+
+        .order-item p {
+            margin: 0;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        .complete-btn {
+            margin-top: 10px;
+        }
+
+        .complete-btn button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .complete-btn button:hover {
+            background-color: #218838;
+        }
+
+        .back-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .back-btn a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Pending Orders List</h2>
+        <ul class="order-list">
+            {% for order in orders %}
+            <li class="order-item">
+                <h3>Order ID: {{ order.id }}</h3>
+                <p><strong>Customer ID:</strong> {{ order.user_id }}</p> <!-- Display User ID -->
+                <p><strong>Customer Name:</strong> {{ order.user_name }}</p> <!-- Display User Name -->
+                <p><strong>Customer Number:</strong> {{ order.user_num }}</p> <!-- Display User Number -->
+                <p><strong>Food Item:</strong> {{ order.food_name }}</p> <!-- Display Food Name -->
+                <p><strong>Food Price:</strong> ₹{{ order.food_price }}</p> <!-- Display Food Price -->
+                <p><strong>Food Description:</strong> {{ order.food_description }}</p> <!-- Display Food Description -->
+                <p><strong>Delivery Address:</strong> {{ order.delivery_address }}</p> <!-- Display Delivery Address -->
+                <p><strong>Status:</strong> {{ order.status }}</p> <!-- Display Order Status -->
+
+                <!-- Mark as Completed button -->
+                <div class="complete-btn">
+                    <form method="POST" action="{% url 'mark_order_complete' order.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Mark as Completed</button>
+                    </form>
+                </div>
+            </li>
+            {% empty %}
+            <p>No orders found.</p>
+            {% endfor %}
+        </ul>
+
+        <div class="back-btn">
+            <a href="{% url 'hotel_dashboard' %}">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+
+</html>
