@@ -5,7 +5,7 @@ from firebase_admin import credentials, auth, firestore
 
 # Firebase Admin SDK initialization
 #json_path = os.path.join(settings.BASE_DIR, 'static', 'restaurant-project-b5ace-firebase-adminsdk-rimn3-4fe154fb20.json')
-cred = credentials.Certificate('main/static/restaurant-project-b5ace-firebase-adminsdk-rimn3-4fe154fb20.json')
+cred = credentials.Certificate('main/static/restaurant-project-b5ace-firebase-adminsdk-rimn3-bfaa341140.json')
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
